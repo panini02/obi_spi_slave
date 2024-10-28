@@ -26,7 +26,6 @@ module spi_slave_axi_plug #(
 
     // RESPONSE CHANNEL
     input logic obi_master_r_valid,
-    output logic obi_master_r_ready,  //Unsure if to be removed since not part of RI5CY and CV32E40
     input logic [OBI_DATA_WIDTH-1:0] obi_master_r_data,
 
     //SPI
@@ -87,14 +86,13 @@ module spi_slave_axi_plug #(
   end
 
   always_comb begin
-    OBI_NS             = IDLE;
-    sample_fifo        = 1'b0;
-    rx_ready           = 1'b0;
-    tx_valid           = 1'b0;
-    obi_master_req     = 1'b0;
-    obi_master_we      = 1'b0;
-    obi_master_r_ready = 1'b0;
-    sample_obidata     = 1'b0;
+    OBI_NS         = IDLE;
+    sample_fifo    = 1'b0;
+    rx_ready       = 1'b0;
+    tx_valid       = 1'b0;
+    obi_master_req = 1'b0;
+    obi_master_we  = 1'b0;
+    sample_obidata = 1'b0;
     case (OBI_CS)
       IDLE: begin
         if (rx_valid) begin
@@ -122,8 +120,7 @@ module spi_slave_axi_plug #(
       end
       OBIRESP: begin
         if (obi_master_r_valid) begin
-          obi_master_r_ready = 1'b1;
-          OBI_NS             = IDLE;
+          OBI_NS = IDLE;
           if (obi_master_we) sample_obidata = 1'b1;
         end else OBI_NS = OBIRESP;
       end

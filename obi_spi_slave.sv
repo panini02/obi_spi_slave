@@ -41,7 +41,6 @@ module obi_spi_slave #(
 
     // RESPONSE CHANNEL
     input logic obi_master_r_valid,
-    output logic obi_master_r_ready,  //Unsure if to be removed since not part of RI5CY and CV32E40
     input logic [OBI_DATA_WIDTH-1:0] obi_master_r_data
 );
 
@@ -188,7 +187,6 @@ module obi_spi_slave #(
       .obi_master_we     (obi_master_we),
       .obi_master_w_data (obi_master_w_data),
       .obi_master_r_valid(obi_master_r_valid),
-      .obi_master_r_ready(obi_master_r_ready),
       .obi_master_r_data (obi_master_r_data),
       .rxtx_addr         (addr_sync),
       .rxtx_addr_valid   (addr_valid_sync),

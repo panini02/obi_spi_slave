@@ -60,32 +60,30 @@ module spi_slave_axi_plug
   logic [31:0]               curr_data_rx;
   logic [OBI_DATA_WIDTH-1:0] curr_data_tx;
   logic                      sample_fifo;
-  logic                      sample_axidata;
+  logic                      sample_obidata;
 
 
 
-  enum logic [1:0] {IDLE,OBIADDR,OBIRESP} AR_CS,AR_NS,AW_CS,AW_NS;  //Do I have to add a 4th state which defaults to the idle state to 
+  enum logic [1:0] {IDLE,OBIADDR,OBIRESP} OBI_CS,OBI_NS;  //Do I have to add a 4th state which defaults to the idle state to 
                                                                     //complete the FSM states?
 
   always_ff @(posedge obi_aclk or negedge obi_aresetn)
   begin
     if (obi_aresetn == 0)
     begin 
-      AW_CS         <= IDLE;
-      AR_CS         <= IDLE;
+      OBI_CS         <= IDLE;
       curr_data_rx  <=  'h0;
       curr_data_tx  <=  'h0;
       curr_addr     <=  'h0;
     end
     else
     begin
-      AW_CS <= AW_NS;
-      AR_CS <= AR_NS;
+      OBI_CS <= OBI_NS;
       if (sample_fifo)
       begin
         curr_data_rx <= rx_data;
       end
-      if (sample_axidata)
+      if (sample_obidata)
         curr_data_tx <= obi_master_r_data;
       if (rxtx_addr_valid)              
         curr_addr <= rxtx_addr;
@@ -94,100 +92,60 @@ module spi_slave_axi_plug
 
   always_comb
   begin
-    AW_NS               = IDLE;
+    OBI_NS               = IDLE;
     sample_fifo         = 1'b0; 
     rx_ready            = 1'b0;
+    tx_valid            = 1'b0;
     obi_master_req      = 1'b0;
     obi_master_we       = 1'b0;                
-    obi_master_r_ready  = 1'b0;           
-    case(AW_CS)
+    obi_master_r_ready  = 1'b0;
+    sample_obidata      = 1'b0;            
+    case(OBI_CS)
       IDLE:
       begin
         if(rx_valid)
         begin
           sample_fifo = 1'b1;
-          rx_ready    = 1'b1;                 
-          AW_NS       = OBIADDR;
+          rx_ready    = 1'b1;   
+          obi_master_we  = 1'b1;               
+          OBI_NS       = OBIADDR;
+        end
+        else if(start_tx && !cs)
+        begin 
+          tx_valid = 1'b1;                  //Unsure if this is the right place for tx_valid. It is changed one clock cycle earlier than before
+          obi_master_we  = 1'b0; 
+          OBI_NS      = OBIADDR;
         end
         else
         begin
-          AW_NS      = IDLE;
+          OBI_NS      = IDLE;
           //obi_master_req = 0'b0;            //returning signals to 0. The AXI code didn't include returning values to their original value so I'm unsure 
           //obi_master_r_ready = 0'b0;        //whether I'm missing something or not.
         end
       end
       OBIADDR:
       begin
+        if (cs && !obi_master_we)
+        begin
+          OBI_NS = IDLE;
+        end
         obi_master_req = 1'b1;             
-        obi_master_we  = 1'b1; 
-        if (obi_master_gnt)
-          AW_NS = OBIRESP;
+        if (obi_master_gnt && (tx_ready && !obi_master_we || obi_master_we))
+          OBI_NS = OBIRESP;
         else
-          AW_NS = OBIADDR;
+          OBI_NS = OBIADDR;
       end
       OBIRESP:
       begin
         if (obi_master_r_valid)
         begin
           obi_master_r_ready  = 1'b1;
-          AW_NS               = IDLE;
+          OBI_NS               = IDLE;
+          if(obi_master_we)
+            sample_obidata = 1'b1;
         end
         else
-          AW_NS = OBIRESP;
-      end
-    endcase
-  end
-
-  always_comb
-  begin
-    AR_NS               = IDLE;
-    tx_valid            = 1'b0;
-    obi_master_r_ready  = 1'b0;
-    obi_master_we       = 1'b0;
-    sample_axidata      = 1'b0; 
-    case(AR_CS)
-      IDLE:
-      begin
-        if(start_tx && !cs)
-        begin
-          AR_NS      = OBIADDR;
-        end
-        else
-        begin
-          AR_NS      = IDLE;
-        end
-      end
-      OBIADDR:
-      begin
-        tx_valid = 1'b1;
-        if (cs)
-        begin
-          AR_NS = IDLE;
-        end
-        else
-        begin
-          obi_master_we       = 1'b0;
-          obi_master_req      = 1'b1;   
-          if(tx_ready && obi_master_gnt)  //Unsure if it is the best place to check for gnt
-            begin
-              AR_NS       = OBIRESP;
-            end
-          else              
-          begin
-            AR_NS      = OBIADDR;
-          end
-        end
-      end
-      OBIRESP:
-      begin
-        if (obi_master_r_valid)
-        begin
-          obi_master_r_ready = 1'b1;
-          sample_axidata = 1'b1;
-          AR_NS = IDLE;
-        end
-        else
-          AR_NS = OBIRESP;
+          OBI_NS = OBIRESP;
       end
     endcase
   end

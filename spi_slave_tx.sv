@@ -16,7 +16,6 @@ module spi_slave_tx (
     output logic        sdo1,
     output logic        sdo2,
     output logic        sdo3,
-    input  logic        en_quad_in,
     input  logic [ 7:0] counter_in,
     input  logic        counter_in_upd,
     input  logic [31:0] data,
@@ -36,10 +35,10 @@ module spi_slave_tx (
   logic sclk_inv;
   logic sclk_test;
 
-  assign sdo0 = (en_quad_in) ? data_int[28] : data_int[31];
-  assign sdo1 = (en_quad_in) ? data_int[29] : 1'b0;
-  assign sdo2 = (en_quad_in) ? data_int[30] : 1'b0;
-  assign sdo3 = (en_quad_in) ? data_int[31] : 1'b0;
+  assign sdo0 = data_int[31];
+  assign sdo1 = 1'b0;
+  assign sdo2 = 1'b0;
+  assign sdo3 = 1'b0;
 
   always_comb begin
     done = 1'b0;
@@ -58,8 +57,7 @@ module spi_slave_tx (
 
       if (data_valid) data_int_next = data;
       else begin
-        if (en_quad_in) data_int_next = {data_int[27:0], 4'b0000};
-        else data_int_next = {data_int[30:0], 1'b0};
+        data_int_next = {data_int[30:0], 1'b0};
       end
     end else begin
       counter_next  = counter;

@@ -17,7 +17,7 @@ module obi_spi_slave #(
     input  logic       test_mode,
     input  logic       spi_sclk,
     input  logic       spi_cs,
-    output logic [1:0] spi_mode,
+    output logic [0:0] spi_mode,
     input  logic       spi_sdi0,
     input  logic       spi_sdi1,
     input  logic       spi_sdi2,
@@ -46,7 +46,6 @@ module obi_spi_slave #(
 );
 
 
-  logic                      en_quad;
   logic [               7:0] rx_counter;
   logic                      rx_counter_upd;
   logic [              31:0] rx_data;
@@ -92,7 +91,6 @@ module obi_spi_slave #(
       .sdi1          (spi_sdi1),
       .sdi2          (spi_sdi2),
       .sdi3          (spi_sdi3),
-      .en_quad_in    (en_quad),
       .counter_in    (rx_counter),
       .counter_in_upd(rx_counter_upd),
       .data          (rx_data),
@@ -107,7 +105,6 @@ module obi_spi_slave #(
       .sdo1          (spi_sdo1),
       .sdo2          (spi_sdo2),
       .sdo3          (spi_sdo3),
-      .en_quad_in    (en_quad),
       .counter_in    (tx_counter),
       .counter_in_upd(tx_counter_upd),
       .data          (tx_data),
@@ -121,7 +118,6 @@ module obi_spi_slave #(
       .sclk              (spi_sclk),
       .sys_rstn          (obi_aresetn),
       .cs                (spi_cs),
-      .en_quad           (en_quad),
       .pad_mode          (spi_mode),
       .rx_counter        (rx_counter),
       .rx_counter_upd    (rx_counter_upd),

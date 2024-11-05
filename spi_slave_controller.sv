@@ -8,10 +8,8 @@
 // CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
-`define SPI_STD_TX 2'b00
-`define SPI_STD_RX 2'b01
-`define SPI_QUAD_TX 2'b10
-`define SPI_QUAD_RX 2'b11
+`define SPI_STD_TX 1'b0
+`define SPI_STD_RX 1'b1
 
 module spi_slave_controller #(
     parameter DUMMY_CYCLES = 32
@@ -19,8 +17,7 @@ module spi_slave_controller #(
     input  logic        sclk,
     input  logic        sys_rstn,
     input  logic        cs,
-    output logic        en_quad,
-    output logic [ 1:0] pad_mode,
+    output logic  [0:0] pad_mode,
     output logic [ 7:0] rx_counter,
     output logic        rx_counter_upd,
     input  logic [31:0] rx_data,
@@ -87,7 +84,7 @@ module spi_slave_controller #(
   logic                tx_counter_upd_next;
   logic                tx_data_valid_next;
   logic                tx_done_reg;
-  logic [         1:0] pad_mode_next;
+  logic [         0:0] pad_mode_next;
 
   logic [         7:0] s_dummy_cycles;
 
@@ -117,11 +114,10 @@ module spi_slave_controller #(
       .rd_data(reg_data),
       .rd_addr(reg_sel),
       .dummy_cycles(s_dummy_cycles),
-      .en_qpi(en_quad),
       .wrap_length(wrap_length)
   );
   always_comb begin
-    pad_mode                = en_quad ? `SPI_QUAD_RX : `SPI_STD_RX;
+    pad_mode                = `SPI_STD_RX;
     rx_counter              = 8'h1F;
     rx_counter_upd          = 0;
     tx_counter_next         = 8'h1F;
@@ -138,7 +134,7 @@ module spi_slave_controller #(
     state_next              = state;
     case (state)
       CMD: begin
-        pad_mode = en_quad ? `SPI_QUAD_RX : `SPI_STD_RX;
+        pad_mode = `SPI_STD_RX;
         decode_cmd_comb = 1'b1;
         ctrl_data_tx_ready_next = 1'b1;  //empty TX fifo if not allready empty
         if (rx_data_valid) begin
@@ -146,16 +142,16 @@ module spi_slave_controller #(
           if (get_addr) begin
             state_next     = ADDR;
             rx_counter_upd = 1;
-            rx_counter     = en_quad ? 8'h7 : 8'h1F;
+            rx_counter     = 8'h1F;
           end else if (get_data) begin
             state_next     = DATA_RX;
             rx_counter_upd = 1;
-            if (enable_regs) rx_counter = en_quad ? 8'h1 : 8'h7;
+            if (enable_regs) rx_counter = 8'h7;
           end else begin
             state_next          = DATA_TX;
             tx_counter_upd_next = 1;
             tx_data_valid_next  = 1'b1;
-            tx_counter_next     = en_quad ? 8'h7 : 8'h1F;
+            tx_counter_next     = 8'h1F;
             if (~enable_regs) ctrl_data_tx_ready_next = 1'b1;
           end
         end else begin
@@ -163,7 +159,7 @@ module spi_slave_controller #(
         end
       end
       ADDR: begin
-        pad_mode = en_quad ? `SPI_QUAD_RX : `SPI_STD_RX;
+        pad_mode = `SPI_STD_RX;
         ctrl_data_tx_ready_next = 1'b1;
         if (rx_data_valid) begin
           sample_ADDR = 1'b1;
@@ -174,18 +170,18 @@ module spi_slave_controller #(
           end else if (send_data) begin
             state_next          = DATA_TX;
             tx_counter_upd_next = 1;
-            tx_counter_next     = en_quad ? 8'h7 : 8'h1F;
+            tx_counter_next     = 8'h1F;
           end else if (get_data) begin
             state_next     = DATA_RX;
             rx_counter_upd = 1;
-            rx_counter     = en_quad ? 8'h7 : 8'h1F;
+            rx_counter     = 8'h1F;
           end
         end else begin
           state_next = ADDR;
         end
       end
       MODE: begin
-        pad_mode = en_quad ? `SPI_QUAD_RX : `SPI_STD_RX;
+        pad_mode = `SPI_STD_RX;
         if (rx_data_valid) begin
           if (wait_dummy) begin
             state_next     = DUMMY;
@@ -193,11 +189,11 @@ module spi_slave_controller #(
             rx_counter_upd = 1;
           end else if (get_data) begin
             state_next     = DATA_RX;
-            rx_counter     = en_quad ? 8'h7 : 8'h1F;
+            rx_counter     = 8'h1F;
             rx_counter_upd = 1;
           end else if (send_data) begin
             state_next          = DATA_TX;
-            tx_counter_next     = en_quad ? 8'h7 : 8'h1F;
+            tx_counter_next     = 8'h1F;
             tx_counter_upd_next = 1;
             tx_data_valid_next  = 1'b1;
             if (~enable_regs) ctrl_data_tx_ready_next = 1'b1;
@@ -207,16 +203,15 @@ module spi_slave_controller #(
         end
       end
       DUMMY: begin
-        pad_mode = en_quad ? `SPI_QUAD_RX : `SPI_STD_RX;
+        pad_mode = `SPI_STD_RX;
         if (rx_data_valid) begin
           if (get_data) begin
             state_next     = DATA_RX;
-            rx_counter     = en_quad ? 8'h7 : 8'h1F;
+            rx_counter     = 8'h1F;
             rx_counter_upd = 1;
           end else begin
-            if (en_quad) pad_mode_next = `SPI_QUAD_TX;
             state_next          = DATA_TX;
-            tx_counter_next     = en_quad ? 8'h7 : 8'h1F;
+            tx_counter_next     = 8'h1F;
             tx_counter_upd_next = 1;
             tx_data_valid_next  = 1'b1;
             if (~enable_regs) ctrl_data_tx_ready_next = 1'b1;
@@ -226,17 +221,17 @@ module spi_slave_controller #(
         end
       end
       DATA_RX: begin
-        pad_mode = en_quad ? `SPI_QUAD_RX : `SPI_STD_RX;
+        pad_mode = `SPI_STD_RX;
         if (rx_data_valid) begin
           if (enable_regs) reg_valid = 1'b1;
           else ctrl_data_rx_valid = 1'b1;
           if (enable_cont) begin
             state_next     = DATA_RX;
-            rx_counter     = en_quad ? 8'h7 : 8'h1F;
+            rx_counter     = 8'h1F;
             rx_counter_upd = 1;
           end else begin
             state_next     = CMD;
-            rx_counter     = en_quad ? 8'h1 : 8'h7;
+            rx_counter     = 8'h7;
             rx_counter_upd = 1;
           end
         end else begin
@@ -244,17 +239,17 @@ module spi_slave_controller #(
         end
       end
       DATA_TX: begin
-        pad_mode = en_quad ? `SPI_QUAD_TX : `SPI_STD_TX;
+        pad_mode = `SPI_STD_TX;
         if (tx_done_reg) begin
           if (enable_cont) begin
             state_next          = DATA_TX;
-            tx_counter_next     = en_quad ? 8'h7 : 8'h1F;
+            tx_counter_next     = 8'h1F;
             tx_counter_upd_next = 1;
             tx_data_valid_next  = 1'b1;
             if (~enable_regs) ctrl_data_tx_ready_next = 1'b1;
           end else begin
             state_next     = CMD;
-            rx_counter     = en_quad ? 8'h1 : 8'h7;
+            rx_counter     = 8'h7;
             rx_counter_upd = 1;
           end
         end else begin

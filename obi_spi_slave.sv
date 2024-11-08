@@ -195,7 +195,8 @@ module obi_spi_slave #(
       .tx_ready          (fifo_data_tx_ready),
       .rx_data           (fifo_data_rx),
       .rx_valid          (fifo_data_rx_valid),
-      .rx_ready          (fifo_data_rx_ready)
+      .rx_ready          (fifo_data_rx_ready),
+      .wrap_length       (wrap_length)
   );
 
   spi_slave_syncro #(

@@ -50,7 +50,7 @@ module spi_slave_rx (
         counter_next = counter + 1;
         data_ready   = 1'b0;
       end
-    data_int_next = {data_int[30:0], sdi0};
+      data_int_next = {data_int[30:0], sdi0};
     end else begin
       counter_next  = counter;
       data_ready    = 1'b0;

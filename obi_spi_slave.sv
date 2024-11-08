@@ -38,7 +38,7 @@ module obi_spi_slave #(
     output logic [OBI_ADDR_WIDTH-1:0] obi_master_addr,
     output logic                      obi_master_we,
     output logic [OBI_DATA_WIDTH-1:0] obi_master_w_data,
-    output logic [3:0]                obi_master_be,
+    output logic [               3:0] obi_master_be,
 
     // RESPONSE CHANNEL
     input logic obi_master_r_valid,

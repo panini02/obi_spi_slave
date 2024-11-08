@@ -32,7 +32,7 @@ module spi_slave_regs #(
 
   always_comb begin
     case (rd_addr)
-      2'b00: rd_data = reg0; 
+      2'b00: rd_data = reg0;
       2'b01: rd_data = reg1;
       2'b10: rd_data = reg2;
       2'b11: rd_data = reg3;
@@ -41,14 +41,14 @@ module spi_slave_regs #(
 
   always @(posedge sclk or negedge rstn) begin
     if (rstn == 0) begin
-      reg0 <= 'h0; 
+      reg0 <= 'h0;
       reg1 <= 'd32;
       reg2 <= 'h0;
       reg3 <= 'h0;
     end else begin
       if (wr_data_valid) begin
         case (wr_addr)
-          2'b00: reg0 <= wr_data; 
+          2'b00: reg0 <= wr_data;
           2'b01: reg1 <= wr_data;
           2'b10: reg2 <= wr_data;
           2'b11: reg3 <= wr_data;

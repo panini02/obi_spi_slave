@@ -17,7 +17,7 @@ module spi_slave_controller #(
     input  logic        sclk,
     input  logic        sys_rstn,
     input  logic        cs,
-    output logic  [0:0] pad_mode,
+    output logic [ 0:0] pad_mode,
     output logic [ 7:0] rx_counter,
     output logic        rx_counter_upd,
     input  logic [31:0] rx_data,

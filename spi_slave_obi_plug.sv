@@ -23,14 +23,14 @@ module spi_slave_obi_plug #(
     output logic [OBI_ADDR_WIDTH-1:0] obi_master_addr,
     output logic                      obi_master_we,
     output logic [OBI_DATA_WIDTH-1:0] obi_master_w_data,
-    output logic [3:0]                obi_master_be,
+    output logic [               3:0] obi_master_be,
 
     // RESPONSE CHANNEL
     input logic obi_master_r_valid,
     input logic [OBI_DATA_WIDTH-1:0] obi_master_r_data,
 
     //SPI/BUFFER
-    input  logic [OBI_ADDR_WIDTH-1:0]   rxtx_addr,
+    input logic [OBI_ADDR_WIDTH-1:0] rxtx_addr,
     input logic rxtx_addr_valid,
     input logic start_tx,
     input logic cs,
@@ -49,7 +49,7 @@ module spi_slave_obi_plug #(
   logic                      sample_obidata;
   logic                      sample_rxtx_state;
   logic                      rxtx_state;
-  logic [0:0]                curr_rxtx_state; //low for reading, high for writing
+  logic [               0:0] curr_rxtx_state;  //low for reading, high for writing
 
 
 
@@ -59,42 +59,42 @@ module spi_slave_obi_plug #(
     OBIRESP,
     SEND_TX_DATA
   }
-      OBI_CS, OBI_NS; 
+      OBI_CS, OBI_NS;
 
   always_ff @(posedge obi_aclk or negedge obi_aresetn) begin
     if (obi_aresetn == 0) begin
-      OBI_CS       <= IDLE;
-      curr_data_rx <= 'h0;
-      curr_data_tx <= 'h0;
-      curr_addr    <= 'h0;
+      OBI_CS          <= IDLE;
+      curr_data_rx    <= 'h0;
+      curr_data_tx    <= 'h0;
+      curr_addr       <= 'h0;
       curr_rxtx_state <= 'h0;
     end else begin
       OBI_CS <= OBI_NS;
       if (sample_fifo) curr_data_rx <= rx_data;
       if (sample_obidata) curr_data_tx <= obi_master_r_data;
       if (rxtx_addr_valid) curr_addr <= rxtx_addr;
-      if (sample_rxtx_state) curr_rxtx_state <= rxtx_state; 
+      if (sample_rxtx_state) curr_rxtx_state <= rxtx_state;
     end
   end
 
   always_comb begin
-    OBI_NS         = IDLE;
-    sample_fifo    = 1'b0;
-    rx_ready       = 1'b0;
-    tx_valid       = 1'b0;
-    obi_master_req = 1'b0;
-    obi_master_we  = 1'b0;
-    sample_obidata = 1'b0;
+    OBI_NS            = IDLE;
+    sample_fifo       = 1'b0;
+    rx_ready          = 1'b0;
+    tx_valid          = 1'b0;
+    obi_master_req    = 1'b0;
+    obi_master_we     = 1'b0;
+    sample_obidata    = 1'b0;
     sample_rxtx_state = 1'b0;
-    rxtx_state = 1'b0;
+    rxtx_state        = 1'b0;
     case (OBI_CS)
       IDLE: begin
         if (rx_valid) begin
-          sample_fifo   = 1'b1;
-          rx_ready      = 1'b1;
-          rxtx_state = 1'b1;
+          sample_fifo       = 1'b1;
+          rx_ready          = 1'b1;
+          rxtx_state        = 1'b1;
           sample_rxtx_state = 1'b1;
-          OBI_NS        = OBIADDR;
+          OBI_NS            = OBIADDR;
         end else if (start_tx && !cs) begin
           rxtx_state = 1'b0;
           sample_rxtx_state = 1'b1;
@@ -104,10 +104,10 @@ module spi_slave_obi_plug #(
         end
       end
       OBIADDR: begin
-        if(curr_rxtx_state)begin 
-          obi_master_we = 1'b1;               
+        if (curr_rxtx_state) begin
+          obi_master_we = 1'b1;
         end
-        
+
         obi_master_req = 1'b1;
 
         if (obi_master_gnt && ((tx_ready && !curr_rxtx_state) || curr_rxtx_state)) OBI_NS = OBIRESP;
@@ -124,7 +124,7 @@ module spi_slave_obi_plug #(
       end
       SEND_TX_DATA: begin
         tx_valid = 1'b1;
-        OBI_NS = IDLE;
+        OBI_NS   = IDLE;
       end
     endcase
   end

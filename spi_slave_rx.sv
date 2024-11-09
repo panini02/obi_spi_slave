@@ -11,10 +11,7 @@
 module spi_slave_rx (
     input  logic        sclk,
     input  logic        cs,
-    input  logic        sdi0,
-    input  logic        sdi1,
-    input  logic        sdi2,
-    input  logic        sdi3,
+    input  logic        mosi,
     input  logic [ 7:0] counter_in,
     input  logic        counter_in_upd,
     output logic [31:0] data,
@@ -50,7 +47,7 @@ module spi_slave_rx (
         counter_next = counter + 1;
         data_ready   = 1'b0;
       end
-      data_int_next = {data_int[30:0], sdi0};
+      data_int_next = {data_int[30:0], mosi};
     end else begin
       counter_next  = counter;
       data_ready    = 1'b0;

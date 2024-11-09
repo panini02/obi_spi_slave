@@ -41,7 +41,7 @@ module spi_slave_obi_plug #(
     input logic rx_valid,
     output logic rx_ready,
 
-    input  logic                 [15:0] wrap_length
+    input logic [15:0] wrap_length
 );
 
   logic [OBI_ADDR_WIDTH-1:0] curr_addr;
@@ -58,7 +58,7 @@ module spi_slave_obi_plug #(
 
 
   // up to 64 kwords (256kB)
-  logic [15:0] tx_counter;
+  logic [              15:0] tx_counter;
 
 
 
@@ -91,29 +91,20 @@ module spi_slave_obi_plug #(
     end
   end
 
-  always_ff @(posedge obi_aclk or negedge obi_aresetn)
-  begin
-    if (obi_aresetn == 1'b0)
-      tx_counter <= 16'h0;
-    else if(start_tx)
-      tx_counter <= 16'h0;
-    else if(incr_addr_w | incr_addr_r) begin
-      if(tx_counter == wrap_length_t-1)
-        tx_counter <= 16'h0;
-      else
-        tx_counter <= tx_counter + 16'h1;
+  always_ff @(posedge obi_aclk or negedge obi_aresetn) begin
+    if (obi_aresetn == 1'b0) tx_counter <= 16'h0;
+    else if (start_tx) tx_counter <= 16'h0;
+    else if (incr_addr_w | incr_addr_r) begin
+      if (tx_counter == wrap_length_t - 1) tx_counter <= 16'h0;
+      else tx_counter <= tx_counter + 16'h1;
     end
   end
 
-  always_comb
-  begin
+  always_comb begin
     next_addr = 32'b0;
-    if(rxtx_addr_valid)
-      next_addr = rxtx_addr;
-    else if(tx_counter == wrap_length_t-1)
-      next_addr = rxtx_addr;
-    else
-      next_addr = curr_addr + 32'h4;
+    if (rxtx_addr_valid) next_addr = rxtx_addr;
+    else if (tx_counter == wrap_length_t - 1) next_addr = rxtx_addr;
+    else next_addr = curr_addr + 32'h4;
   end
 
 
@@ -161,31 +152,23 @@ module spi_slave_obi_plug #(
           if (!curr_rxtx_state) begin
             sample_obidata = 1'b1;
             OBI_NS = DATA;
-          end
-          else  incr_addr_w         = 1'b1;
+          end else incr_addr_w = 1'b1;
         end else OBI_NS = OBIRESP;
       end
       DATA: begin
         tx_valid = 1'b1;
-        if (cs)
-        begin
-          OBI_NS   = IDLE;
-        end
-        else
-        begin
-          if(tx_ready)
-            if(tx_counter == wrap_length_t-1)
-            begin
+        if (cs) begin
+          OBI_NS = IDLE;
+        end else begin
+          if (tx_ready)
+            if (tx_counter == wrap_length_t - 1) begin
               OBI_NS = IDLE;
-            end
-            else
-            begin
+            end else begin
               incr_addr_r = 1'b1;
               OBI_NS      = OBIADDR;
             end
-          else              
-          begin
-            OBI_NS      = DATA;
+          else begin
+            OBI_NS = DATA;
           end
         end
 

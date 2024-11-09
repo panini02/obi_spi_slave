@@ -14,18 +14,11 @@ module obi_spi_slave #(
     parameter OBI_DATA_WIDTH = 32,
     parameter DUMMY_CYCLES   = 32
 ) (
-    input  logic       test_mode,
-    input  logic       spi_sclk,
-    input  logic       spi_cs,
-    output logic [0:0] spi_mode,
-    input  logic       spi_sdi0,
-    input  logic       spi_sdi1,
-    input  logic       spi_sdi2,
-    input  logic       spi_sdi3,
-    output logic       spi_sdo0,
-    output logic       spi_sdo1,
-    output logic       spi_sdo2,
-    output logic       spi_sdo3,
+    //input  logic       test_mode,
+    input  logic spi_sclk,
+    input  logic spi_cs,
+    input  logic spi_mosi,
+    output logic spi_miso,
 
     // OBI MASTER
     //***************************************
@@ -44,7 +37,6 @@ module obi_spi_slave #(
     input logic obi_master_r_valid,
     input logic [OBI_DATA_WIDTH-1:0] obi_master_r_data
 );
-
 
   logic [               7:0] rx_counter;
   logic                      rx_counter_upd;
@@ -87,10 +79,7 @@ module obi_spi_slave #(
   spi_slave_rx u_rxreg (
       .sclk          (spi_sclk),
       .cs            (spi_cs),
-      .sdi0          (spi_sdi0),
-      .sdi1          (spi_sdi1),
-      .sdi2          (spi_sdi2),
-      .sdi3          (spi_sdi3),
+      .mosi          (spi_mosi),
       .counter_in    (rx_counter),
       .counter_in_upd(rx_counter_upd),
       .data          (rx_data),
@@ -98,13 +87,10 @@ module obi_spi_slave #(
   );
 
   spi_slave_tx u_txreg (
-      .test_mode     (test_mode),
+      //.test_mode     (test_mode),
       .sclk          (spi_sclk),
       .cs            (spi_cs),
-      .sdo0          (spi_sdo0),
-      .sdo1          (spi_sdo1),
-      .sdo2          (spi_sdo2),
-      .sdo3          (spi_sdo3),
+      .miso          (spi_miso),
       .counter_in    (tx_counter),
       .counter_in_upd(tx_counter_upd),
       .data          (tx_data),
@@ -118,7 +104,6 @@ module obi_spi_slave #(
       .sclk              (spi_sclk),
       .sys_rstn          (obi_aresetn),
       .cs                (spi_cs),
-      .pad_mode          (spi_mode),
       .rx_counter        (rx_counter),
       .rx_counter_upd    (rx_counter_upd),
       .rx_data           (rx_data),

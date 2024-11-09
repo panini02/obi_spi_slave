@@ -13,7 +13,7 @@ filesets:
       - pulp-platform.org::common_cells
     files:
     - obi_spi_slave.sv
-    - spi_slave_axi_plug.sv
+    - spi_slave_obi_plug.sv
     - spi_slave_cmd_parser.sv
     - spi_slave_controller.sv
     - spi_slave_dc_fifo.sv

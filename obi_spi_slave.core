@@ -22,6 +22,15 @@ filesets:
     - spi_slave_syncro.sv
     - spi_slave_tx.sv
     file_type: systemVerilogSource
+  
+  files_verilator_waiver:
+    depend:
+      # common waivers
+      - lowrisc:lint:common
+      - lowrisc:lint:comportable
+    files:
+      - obi_spi_slave.vlt
+    file_type: vlt
 
 targets:
   default:

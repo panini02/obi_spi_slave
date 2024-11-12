@@ -60,6 +60,7 @@ module spi_slave_obi_plug #(
   // up to 64 kwords (256kB)
   logic [              15:0] tx_counter;
 
+  logic [              15:0] wrap_length_t;
 
 
   enum logic [1:0] {
@@ -71,7 +72,7 @@ module spi_slave_obi_plug #(
       OBI_CS, OBI_NS;
 
   // Check if the wrap lenght is equal to '0'
-  assign wrap_length_t = (wrap_length == 0) ? 15'h1 : wrap_length;
+  assign wrap_length_t = (wrap_length == 0) ? 16'h1 : wrap_length;
 
 
   always_ff @(posedge obi_aclk or negedge obi_aresetn) begin

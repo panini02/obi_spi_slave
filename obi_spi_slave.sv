@@ -55,9 +55,13 @@ module obi_spi_slave #(
 
   logic [              31:0] ctrl_data_rx;
   logic                      ctrl_data_rx_valid;
+  /* verilator lint_off UNUSED */
   logic                      ctrl_data_rx_ready;
+  /* verilator lint_on UNUSED */
   logic [              31:0] ctrl_data_tx;
+  /* verilator lint_off UNUSED */
   logic                      ctrl_data_tx_valid;
+  /* verilator lint_on UNUSED */
   logic                      ctrl_data_tx_ready;
 
   logic [              31:0] fifo_data_rx;
@@ -118,9 +122,7 @@ module obi_spi_slave #(
       .ctrl_addr_valid   (ctrl_addr_valid),
       .ctrl_data_rx      (ctrl_data_rx),
       .ctrl_data_rx_valid(ctrl_data_rx_valid),
-      .ctrl_data_rx_ready(ctrl_data_rx_ready),
       .ctrl_data_tx      (ctrl_data_tx),
-      .ctrl_data_tx_valid(ctrl_data_tx_valid),
       .ctrl_data_tx_ready(ctrl_data_tx_ready),
       .wrap_length       (wrap_length)
   );

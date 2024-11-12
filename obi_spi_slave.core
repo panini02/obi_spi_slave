@@ -19,7 +19,7 @@ filesets:
     - spi_slave_dc_fifo.sv
     - spi_slave_regs.sv
     - spi_slave_rx.sv
-    - spi_slave_syncro
+    - spi_slave_syncro.sv
     - spi_slave_tx.sv
     file_type: systemVerilogSource
 

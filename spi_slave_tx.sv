@@ -28,7 +28,8 @@ module spi_slave_tx (
   reg [7:0] counter_trgt_next;
   logic running;
   logic running_next;
-  logic test_mode;  //TO BE DELETED
+  logic test_mode;  //TO BE DELETED (either set as input or completely deleted after discussion)
+  assign test_mode = 1'b0;
   logic sclk_inv;
   logic sclk_test;
 

@@ -29,9 +29,7 @@ module spi_slave_controller #(
     output logic        ctrl_addr_valid,
     output logic [31:0] ctrl_data_rx,
     output logic        ctrl_data_rx_valid,
-    input  logic        ctrl_data_rx_ready,
     input  logic [31:0] ctrl_data_tx,
-    input  logic        ctrl_data_tx_valid,
     output logic        ctrl_data_tx_ready,
     output logic [15:0] wrap_length
 );
@@ -56,22 +54,16 @@ module spi_slave_controller #(
 
   logic [        31:0] addr_reg;
   logic [         7:0] cmd_reg;
-  logic [         7:0] mode_reg;
-  logic [        31:0] data_reg;
 
   logic                sample_ADDR;
-  logic                sample_MODE;
   logic                sample_CMD;
-  logic                sample_DATA;
 
   logic                get_addr;
   logic                wait_dummy;
-  logic                get_mode;
   logic                get_data;
   logic                send_data;
   logic                enable_cont;
   logic                enable_regs;
-  logic                cmd_error;
   logic [         1:0] reg_sel;
   logic [REG_SIZE-1:0] reg_data;
   logic                reg_valid;
@@ -81,7 +73,6 @@ module spi_slave_controller #(
   logic                tx_counter_upd_next;
   logic                tx_data_valid_next;
   logic                tx_done_reg;
-  logic [         0:0] pad_mode_next;
 
   logic [         7:0] s_dummy_cycles;
 
@@ -90,13 +81,11 @@ module spi_slave_controller #(
   spi_slave_cmd_parser u_cmd_parser (
       .cmd        (command),      // In,
       .get_addr   (get_addr),     // Out,
-      .get_mode   (get_mode),     // Out,
       .get_data   (get_data),     // Out,
       .send_data  (send_data),    // Out,
       .wait_dummy (wait_dummy),   // Out,
       .enable_cont(enable_cont),  // Out,
       .enable_regs(enable_regs),  // Out,
-      .error      (cmd_error),    // Out,
       .reg_sel    (reg_sel)       // Out
   );
 
@@ -120,9 +109,7 @@ module spi_slave_controller #(
     tx_counter_upd_next     = 0;
     decode_cmd_comb         = 1'b0;
     sample_ADDR             = 1'b0;
-    sample_MODE             = 1'b0;
     sample_CMD              = 1'b0;
-    sample_DATA             = 1'b0;
     ctrl_data_rx_valid      = 1'b0;
     ctrl_data_tx_ready_next = 1'b0;
     reg_valid               = 1'b0;
@@ -264,8 +251,6 @@ module spi_slave_controller #(
   always @(posedge sclk or posedge cs) begin
     if (cs == 1'b1) begin
       addr_reg           <= 'h0;
-      mode_reg           <= 'h0;
-      data_reg           <= 'h0;
       cmd_reg            <= 'h0;
       tx_done_reg        <= 1'b0;
       ctrl_addr_valid    <= 1'b0;
@@ -276,16 +261,14 @@ module spi_slave_controller #(
       tx_data            <= 'h0;
     end else begin
       if (sample_ADDR) addr_reg <= rx_data;
-      if (sample_MODE) mode_reg <= rx_data[7:0];
       if (sample_CMD) cmd_reg <= rx_data[7:0];
-      if (sample_DATA) data_reg <= rx_data;
       ctrl_addr_valid    <= sample_ADDR;
       tx_counter_upd     <= tx_counter_upd_next;
       tx_counter         <= tx_counter_next;
       tx_data_valid      <= tx_data_valid_next;
       tx_done_reg        <= tx_done;
       ctrl_data_tx_ready <= ctrl_data_tx_ready_next;
-      tx_data            <= (enable_regs) ? reg_data : ctrl_data_tx;
+      tx_data            <= (enable_regs) ? {{24{1'b0}}, reg_data} : ctrl_data_tx;
     end
   end
 

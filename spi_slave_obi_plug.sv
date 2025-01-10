@@ -148,8 +148,7 @@ module spi_slave_obi_plug #(
 
         obi_master_req = 1'b1;
 
-        if (obi_master_gnt && ((tx_ready && (curr_rxtx_state == `READING)) || (curr_rxtx_state == `WRITING)))
-          OBI_NS = OBIRESP;
+        if (obi_master_gnt && ((tx_ready && (curr_rxtx_state == `READING)) || (curr_rxtx_state == `WRITING))) OBI_NS = OBIRESP;
         else OBI_NS = OBIADDR;
       end
       OBIRESP: begin
@@ -170,7 +169,7 @@ module spi_slave_obi_plug #(
             if (tx_counter == wrap_length_t - 1) begin
               OBI_NS = IDLE;
             end else begin
-              OBI_NS = OBIADDR;
+              OBI_NS      = OBIADDR;
             end
             incr_addr_r = 1'b1;
           end else begin
